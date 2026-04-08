@@ -123,6 +123,7 @@ claudecode-docker-setup/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .env.example
+├── workspace/                              ← ホスト側の作業フォルダ（コンテナにマウント）
 └── ClaudeCode_DockerDesktop_Windows11_手順書.md  ← この手順書
 ```
 
@@ -134,8 +135,12 @@ PowerShell でこのフォルダに移動し、イメージをビルドします
 
 ```powershell
 cd C:\Users\<ユーザー名>\Downloads\claudecode-docker-setup
+mkdir workspace -ErrorAction SilentlyContinue
 docker compose build
 ```
+
+`docker-compose.yml` では `./workspace` をコンテナ内の `/workspace` にマウントしています。  
+そのため、コンテナ内で `/workspace` 配下に作成したファイルは Windows 側の `workspace` フォルダに保存され、コンテナ終了後も残ります。
 
 > 初回ビルドは Node.js と Claude Code のダウンロードがあるため数分かかります。
 
@@ -215,6 +220,9 @@ WS_BEARER_TOKEN_BEDROCK=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 AWS_REGION=us-east-1
 ```
 
+> Claude Code 本体は `AWS_BEARER_TOKEN_BEDROCK` を参照します。  
+> この Docker イメージでは、`WS_BEARER_TOKEN_BEDROCK` を自動的に `AWS_BEARER_TOKEN_BEDROCK` にマッピングするため、通常は `WS_...` だけ設定すれば動作します。
+
 > `AWS_REGION` は Bedrock で Claude が利用可能なリージョンを指定します（例: `us-east-1`、`us-west-2`）。
 
 #### 動作確認（コンテナ内）
@@ -226,6 +234,7 @@ docker compose run --rm claude-code
 ```bash
 # 環境変数が読み込まれているか確認
 echo $WS_BEARER_TOKEN_BEDROCK
+echo $AWS_BEARER_TOKEN_BEDROCK
 
 # Claude Code を起動（Bedrock 設定は環境変数で自動適用）
 claude
@@ -342,7 +351,10 @@ exit
 ### 再開（Windows PowerShell）
 
 `docker compose run` は毎回新しいコンテナを起動します（`--rm` を付けているため自動削除されます）。  
-作業ファイルを保持したい場合は、ボリュームマウントを使った名前付きコンテナで運用します。
+この構成では `./workspace:/workspace` が既にマウントされているため、作業ファイルは `/workspace` 配下に保存してください。
+
+- 消える場所: `/tmp` や `/root` など、マウント外に作ったファイル
+- 残る場所: `/workspace` に作ったファイル（Windows 側の `workspace` に保存）
 
 ```powershell
 # 毎回クリーンな環境で起動（推奨）
@@ -383,6 +395,7 @@ docker start -ai claude-code-lab
 ```bash
 # Bedrock の場合
 echo $WS_BEARER_TOKEN_BEDROCK
+echo $AWS_BEARER_TOKEN_BEDROCK
 echo $AWS_REGION
 
 # Azure の場合
@@ -397,20 +410,36 @@ echo $ANTHROPIC_API_KEY
 - `claude --bedrock` / `claude --azure` は無効なオプションです。
 - `.env` の環境変数を設定したうえで、`claude` をそのまま実行してください。
 
-### 4) AWS Bedrock: `AccessDeniedException`
+### 4) `API Error: Could not load credentials from any providers`
+- Bedrock 認証トークンが CLI に渡っていないときに発生します。
+- まず以下を確認してください。
+
+```bash
+echo $WS_BEARER_TOKEN_BEDROCK
+echo $AWS_BEARER_TOKEN_BEDROCK
+```
+
+- どちらも空なら `.env` の `WS_BEARER_TOKEN_BEDROCK` を見直してください。
+- `AWS_BEARER_TOKEN_BEDROCK` だけ空の場合は、イメージが古い可能性があるため再ビルドしてください。
+
+```powershell
+docker compose build --no-cache
+```
+
+### 5) AWS Bedrock: `AccessDeniedException`
 - IAM ユーザーに Bedrock の `InvokeModel` 権限が付与されていません。
 - AWS コンソールの IAM で権限を確認し、社内クラウド管理者に権限付与を依頼してください。
 - Bedrock のモデルアクセス（Model access）でそのリージョンの Claude モデルが有効化されているか確認してください。
 
-### 5) Azure AI Foundry: `401 Unauthorized`
+### 6) Azure AI Foundry: `401 Unauthorized`
 - Azure のエンドポイント URL またはキーが間違っています。
 - Azure AI Foundry のデプロイ画面で正しいエンドポイントとキーを再確認してください。
 
-### 6) ビルドが途中で失敗する
+### 7) ビルドが途中で失敗する
 - インターネット接続・プロキシ設定を確認してください。
 - Docker Desktop の Resources（メモリ・CPU）を増やしてみてください（推奨: メモリ 4GB 以上）。
 
-### 7) 会社ネットワークで接続できない
+### 8) 会社ネットワークで接続できない
 - プロキシ設定が必要な可能性があります。
 - `docker compose build` の `--build-arg` や `ENV` でプロキシを設定してください。
 

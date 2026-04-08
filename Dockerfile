@@ -21,8 +21,25 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # Claude Code をグローバルインストール
 RUN npm install -g @anthropic-ai/claude-code
 
+# WS_BEARER_TOKEN_BEDROCK が指定された場合、Claude Code が参照する
+# AWS_BEARER_TOKEN_BEDROCK に自動マッピングする。
+RUN cat > /usr/local/bin/docker-entrypoint.sh <<'EOF'
+#!/usr/bin/env bash
+set -e
+
+if [ -n "${WS_BEARER_TOKEN_BEDROCK:-}" ] && [ -z "${AWS_BEARER_TOKEN_BEDROCK:-}" ]; then
+    export AWS_BEARER_TOKEN_BEDROCK="${WS_BEARER_TOKEN_BEDROCK}"
+fi
+
+exec "$@"
+EOF
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # 作業ディレクトリを設定
 WORKDIR /workspace
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # デフォルトシェルを bash に設定
 CMD ["bash"]
