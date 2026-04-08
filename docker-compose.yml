@@ -10,8 +10,7 @@ services:
       # .env ファイルに認証情報を記入すると自動で読み込まれます
       # AWS Bedrock 用
       - CLAUDE_CODE_USE_BEDROCK=${CLAUDE_CODE_USE_BEDROCK:-}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - WS_BEARER_TOKEN_BEDROCK=${WS_BEARER_TOKEN_BEDROCK:-}
       - AWS_REGION=${AWS_REGION:-}
       # Azure AI Foundry 用
       - CLAUDE_CODE_USE_AZURE=${CLAUDE_CODE_USE_AZURE:-}

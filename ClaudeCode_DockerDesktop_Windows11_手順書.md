@@ -51,15 +51,13 @@
 5. **「Anthropic」** の Claude モデル（例: `Claude 3.5 Sonnet`）の **「Request access」** をクリックして有効化
 6. 承認されるまで少し待つ（即時承認されることが多い）
 
-#### A-2. IAM ユーザーのアクセスキーを取得する
+#### A-2. Bedrock 用 Bearer トークンを取得する
 
-1. AWS コンソールの **「IAM」** を開く
-2. 左メニューの **「ユーザー」** から対象ユーザーを選択（または新規作成）
-3. **「セキュリティ認証情報」** タブ → **「アクセスキーを作成」**
-4. ユースケースは **「その他」** を選択
-5. 作成された **「アクセスキー ID」** と **「シークレットアクセスキー」** をメモする
+1. Bedrock 接続に使用する **Bearer トークン** を取得します（社内発行ポータル、または運用管理者から払い出された値）。
+2. トークン文字列を安全な場所に保存します。
+3. この手順書では、その値を `WS_BEARER_TOKEN_BEDROCK` に設定して利用します。
 
-> 重要: シークレットアクセスキーは作成時に一度しか表示されません。必ずメモしてください。
+> 重要: Bearer トークンは機密情報です。チャットやメール本文に貼り付けず、シークレット管理ツールで保管してください。
 
 #### A-3. IAM ポリシーを確認する
 
@@ -149,11 +147,39 @@ docker compose build
 
 コンテナ内で確認します。
 
+### 手順
+
+1. Windows PowerShell でコンテナを起動
+
+```powershell
+docker compose run --rm claude-code
+```
+
+2. プロンプトが `root@...:/workspace#` のように表示されたら、次を実行
+
 ```bash
 claude --version
 ```
 
-バージョン番号が表示されれば正常です。
+### 正常時の例
+
+```bash
+1.2.3
+```
+
+上記のようにバージョン番号が表示されれば正常です。
+
+### うまくいかない場合
+
+- `claude: command not found`
+  - イメージが古い可能性があります。Windows 側で再ビルドしてください。
+
+```powershell
+docker compose build --no-cache
+```
+
+- `Cannot connect to the Docker daemon`
+  - Docker Desktop が起動していません。Docker Desktop を起動してから再実行してください。
 
 ---
 
@@ -185,8 +211,7 @@ notepad .env
 ```env
 # AWS Bedrock 設定
 CLAUDE_CODE_USE_BEDROCK=1
-AWS_ACCESS_KEY_ID=AKIAxxxxxxxxxxxxxxxxx
-AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+WS_BEARER_TOKEN_BEDROCK=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 AWS_REGION=us-east-1
 ```
 
@@ -200,7 +225,7 @@ docker compose run --rm claude-code
 
 ```bash
 # 環境変数が読み込まれているか確認
-echo $AWS_ACCESS_KEY_ID
+echo $WS_BEARER_TOKEN_BEDROCK
 
 # Claude Code を Bedrock モードで起動
 claude --bedrock
@@ -326,8 +351,7 @@ docker compose run --rm claude-code
 # または名前付きコンテナで永続利用（Bedrock の場合）
 docker run -it --name claude-code-lab `
   -e CLAUDE_CODE_USE_BEDROCK=1 `
-  -e AWS_ACCESS_KEY_ID=$env:AWS_ACCESS_KEY_ID `
-  -e AWS_SECRET_ACCESS_KEY=$env:AWS_SECRET_ACCESS_KEY `
+  -e WS_BEARER_TOKEN_BEDROCK=$env:WS_BEARER_TOKEN_BEDROCK `
   -e AWS_REGION=$env:AWS_REGION `
   claudecode-docker-setup-claude-code bash
 
@@ -358,7 +382,7 @@ docker start -ai claude-code-lab
 
 ```bash
 # Bedrock の場合
-echo $AWS_ACCESS_KEY_ID
+echo $WS_BEARER_TOKEN_BEDROCK
 echo $AWS_REGION
 
 # Azure の場合

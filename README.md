@@ -38,8 +38,7 @@ notepad .env
 
 ```env
 CLAUDE_CODE_USE_BEDROCK=1
-AWS_ACCESS_KEY_ID=AKIAxxxxxxxxxxxxxxxxx
-AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+WS_BEARER_TOKEN_BEDROCK=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 AWS_REGION=us-east-1
 ```
 
@@ -84,7 +83,7 @@ claude "Pythonでfizzbuzzを書いて"
 
 | プラットフォーム | 環境変数 |
 |----------------|---------|
-| AWS Bedrock | `CLAUDE_CODE_USE_BEDROCK=1` + AWS 認証情報 |
+| AWS Bedrock | `CLAUDE_CODE_USE_BEDROCK=1` + `WS_BEARER_TOKEN_BEDROCK` |
 | Azure AI Foundry | `CLAUDE_CODE_USE_AZURE=1` + Azure エンドポイント・APIキー |
 
 ---
