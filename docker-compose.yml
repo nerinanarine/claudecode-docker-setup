@@ -1,0 +1,22 @@
+services:
+  claude-code:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: claude-code-lab
+    stdin_open: true
+    tty: true
+    environment:
+      # .env ファイルに認証情報を記入すると自動で読み込まれます
+      # AWS Bedrock 用
+      - CLAUDE_CODE_USE_BEDROCK=${CLAUDE_CODE_USE_BEDROCK:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-}
+      # Azure AI Foundry 用
+      - CLAUDE_CODE_USE_AZURE=${CLAUDE_CODE_USE_AZURE:-}
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      # ホスト側の作業フォルダをコンテナの /workspace にマウント（任意）
+      - ./workspace:/workspace
