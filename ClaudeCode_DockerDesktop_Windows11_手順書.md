@@ -227,8 +227,8 @@ docker compose run --rm claude-code
 # 環境変数が読み込まれているか確認
 echo $WS_BEARER_TOKEN_BEDROCK
 
-# Claude Code を Bedrock モードで起動
-claude --bedrock
+# Claude Code を起動（Bedrock 設定は環境変数で自動適用）
+claude
 ```
 
 ---
@@ -257,8 +257,8 @@ docker compose run --rm claude-code
 # 環境変数が読み込まれているか確認
 echo $ANTHROPIC_BASE_URL
 
-# Claude Code を Azure モードで起動
-claude --azure
+# Claude Code を起動（Azure 設定は環境変数で自動適用）
+claude
 ```
 
 ---
@@ -393,20 +393,24 @@ echo $ANTHROPIC_API_KEY
 - `.env` ファイルの設定値にコピーミスやスペースが含まれていないか確認してください。
 - `CLAUDE_CODE_USE_BEDROCK=1` または `CLAUDE_CODE_USE_AZURE=1` が設定されているか確認してください。
 
-### 3) AWS Bedrock: `AccessDeniedException`
+### 3) `error: unknown option '--bedrock'` または `--azure`
+- `claude --bedrock` / `claude --azure` は無効なオプションです。
+- `.env` の環境変数を設定したうえで、`claude` をそのまま実行してください。
+
+### 4) AWS Bedrock: `AccessDeniedException`
 - IAM ユーザーに Bedrock の `InvokeModel` 権限が付与されていません。
 - AWS コンソールの IAM で権限を確認し、社内クラウド管理者に権限付与を依頼してください。
 - Bedrock のモデルアクセス（Model access）でそのリージョンの Claude モデルが有効化されているか確認してください。
 
-### 4) Azure AI Foundry: `401 Unauthorized`
+### 5) Azure AI Foundry: `401 Unauthorized`
 - Azure のエンドポイント URL またはキーが間違っています。
 - Azure AI Foundry のデプロイ画面で正しいエンドポイントとキーを再確認してください。
 
-### 4) ビルドが途中で失敗する
+### 6) ビルドが途中で失敗する
 - インターネット接続・プロキシ設定を確認してください。
 - Docker Desktop の Resources（メモリ・CPU）を増やしてみてください（推奨: メモリ 4GB 以上）。
 
-### 5) 会社ネットワークで接続できない
+### 7) 会社ネットワークで接続できない
 - プロキシ設定が必要な可能性があります。
 - `docker compose build` の `--build-arg` や `ENV` でプロキシを設定してください。
 
